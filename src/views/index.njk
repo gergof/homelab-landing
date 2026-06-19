@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{{ title }}</title>
+		<link rel="stylesheet" href="/static/styles.css" />
+		<link rel="icon" href="{{ favicon | default('/static/icon.png', true) }}" />
+	</head>
+	<body>
+		<main class="shell">
+			<header class="page-header">
+				<div>
+					<p class="eyebrow">Homelab</p>
+					<h1>{{ title }}</h1>
+				</div>
+				<p class="timestamp">Updated {{ generatedAt }}</p>
+			</header>
+			{% if projects.length %}
+				<section class="project-grid" aria-label="Projects">
+					{% for project in projects %}
+						<article class="project-card project-card--{{ project.healthcheckResult.status }}">
+							<div class="project-card__header">
+								<h2>{{ project.name }}</h2>
+								<span class="status-pill status-pill--{{ project.healthcheckResult.status }}">
+									<span aria-hidden="true"></span>
+									{{ project.healthcheckResult.status | capitalize }}
+								</span>
+							</div>
+							<p class="project-url">{{ project.url }}</p>
+							{% if project.healthcheckResult.error %}
+								<p class="project-error">{{ project.healthcheckResult.error }}</p>
+							{% endif %}
+							<div class="project-meta">
+								<span>{{ project.healthcheck.type | upper }} check</span>
+								{% if project.healthcheckResult.responseTimeMs %}
+									<span>{{ project.healthcheckResult.responseTimeMs }}ms</span>
+								{% endif %}
+							</div>
+							{% if project.http %}
+								<a class="project-link" href="{{ project.url }}" rel="noreferrer">
+									Open project
+								</a>
+							{% else %}
+								<span class="project-link project-link--disabled">No web link</span>
+							{% endif %}
+						</article>
+					{% endfor %}
+				</section>
+			{% else %}
+				<section class="empty-state">
+					<h2>No projects configured</h2>
+					<p>Add PROJECT_ entries to the environment and restart the server.</p>
+				</section>
+			{% endif %}
+		</main>
+	</body>
+</html>
