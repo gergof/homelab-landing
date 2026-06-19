@@ -1,6 +1,6 @@
 {
   "name": "homelab-landing",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "private": true,
   "description": "Landing page for your homelab listing services",

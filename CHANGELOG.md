@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.0.1](https://github.com/gergof/homelab-landing/compare/v1.0.0...v1.0.1) (2026-06-19)
+
+
+### Build/CI
+
+* Fixed build pipeline ([91a5e35](https://github.com/gergof/homelab-landing/commit/91a5e350ec30852a055540ff1f8f27bed4d88b6d))
+
 ## 1.0.0 (2026-06-19)
 
 
