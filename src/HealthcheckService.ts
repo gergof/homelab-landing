@@ -1,5 +1,6 @@
 import net from 'node:net';
 
+import { FastifyBaseLogger } from 'fastify';
 import NodeCache from 'node-cache';
 import ping from 'ping';
 
@@ -27,14 +28,33 @@ class HealthcheckService {
 		checkperiod: config.healthcheckCacheTtl + 10
 	});
 
+	constructor(private readonly logger: FastifyBaseLogger) {}
+
 	public async getProjectHealth(
 		project: ProjectDefinition
 	): Promise<CachedHealthcheckResult> {
 		const cached = this.cache.get<CachedHealthcheckResult>(project.name);
 
 		if (cached) {
+			this.logger.debug(
+				{
+					project: project.name,
+					status: cached.status,
+					checkedAt: cached.checkedAt
+				},
+				'Using cached healthcheck result'
+			);
 			return cached;
 		}
+
+		this.logger.debug(
+			{
+				project: project.name,
+				type: project.healthcheck.type,
+				endpoint: project.healthcheck.endpoint
+			},
+			'Refreshing healthcheck result'
+		);
 
 		const result = await this.check(project);
 		const cacheableResult = {
@@ -43,6 +63,7 @@ class HealthcheckService {
 		};
 
 		this.cache.set<CachedHealthcheckResult>(project.name, cacheableResult);
+		this.logHealthcheckResult(project, cacheableResult);
 
 		return cacheableResult;
 	}
@@ -87,6 +108,27 @@ class HealthcheckService {
 				error: e instanceof Error ? e.message : 'Healthcheck failed'
 			};
 		}
+	}
+
+	private logHealthcheckResult(
+		project: ProjectDefinition,
+		result: CachedHealthcheckResult
+	): void {
+		const logPayload = {
+			project: project.name,
+			type: project.healthcheck.type,
+			endpoint: project.healthcheck.endpoint,
+			status: result.status,
+			responseTimeMs: result.responseTimeMs,
+			error: result.error
+		};
+
+		if (result.status === HealthStatus.unhealthy) {
+			this.logger.warn(logPayload, 'Healthcheck failed');
+			return;
+		}
+
+		this.logger.info(logPayload, 'Healthcheck completed');
 	}
 
 	private async runHttpCheck(project: ProjectDefinition): Promise<void> {

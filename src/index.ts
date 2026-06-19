@@ -4,7 +4,9 @@ import createServer from './server.js';
 
 const main = async () => {
 	const server = await createServer();
-	const healtcheckService = new HealthcheckService();
+	const healthcheckService = new HealthcheckService(
+		server.log.child({ component: 'healthcheck' })
+	);
 
 	server.log.info('Starting Homelab Landing');
 	server.log.info({ config }, 'Loaded configuration');
@@ -27,7 +29,7 @@ const main = async () => {
 				config.projects.map(async project => ({
 					...project,
 					healthcheckResult:
-						await healtcheckService.getProjectHealth(project)
+						await healthcheckService.getProjectHealth(project)
 				}))
 			)
 		});
@@ -65,16 +67,27 @@ const main = async () => {
 		void shutdown('SIGTERM');
 	});
 
-	server.log.info('Start listening');
+	server.log.info(
+		{
+			host: config.host,
+			port: config.port
+		},
+		'Start listening'
+	);
 	await server.listen({
 		host: config.host,
 		port: config.port
 	});
-
-	server.log.info('Started listening');
+	server.log.info(
+		{
+			host: config.host,
+			port: config.port
+		},
+		'Started listening'
+	);
 };
 
 main().catch(e => {
-	console.log('Application failed to start', e);
+	console.error('Application failed to start', e);
 	process.exit(1);
 });
