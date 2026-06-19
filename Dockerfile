@@ -1,0 +1,22 @@
+FROM node:24-alpine AS builder
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+
+
+FROM node:24-alpine
+
+ENV NODE_ENV=production
+RUN mkdir -p /app && chown node:node /app
+WORKDIR /app
+USER node
+COPY --chown=node:node package*.json ./
+RUN npm ci --omit=dev
+COPY --from=builder --chown=node:node /app/dist ./
+
+EXPOSE 3000
+CMD ["node", "index.js"]
